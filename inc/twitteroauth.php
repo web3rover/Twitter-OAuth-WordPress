@@ -1,5 +1,6 @@
 <?php
 
+require_once('twitteroauth/twitteroauth.php');
 session_start();
 
 /*redirect*/
@@ -43,6 +44,7 @@ add_action("wp_ajax_nopriv_twitter_oauth_redirect", "twitter_oauth_redirect");
 /*callback*/
 function twitter_oauth_callback()
 {
+
 global $wp, $wp_query, $wp_the_query, $wp_rewrite, $wp_did_header;
 require_once("../wp-load.php");
 require_once('twitteroauth/twitteroauth.php');
@@ -57,7 +59,7 @@ $connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $_SESSION['oauth_t
 $access_token = $connection->getAccessToken($_REQUEST['oauth_verifier']);
 
 /* Save the access tokens. Normally these would be saved in a database for future use. */
-$_SESSION['access_token'] = $access_token;
+$_SESSION['twitter_access_token'] = $access_token;
 
 /* Remove no longer needed request tokens */
 unset($_SESSION['oauth_token']);
@@ -80,6 +82,7 @@ add_action("wp_ajax_nopriv_twitter_oauth_callback", "twitter_oauth_callback");
 /*login into wordpress using wp_set_auth_cookie*/
 function twitter_oauth_login()
 {
+
 global $wp, $wp_query, $wp_the_query, $wp_rewrite, $wp_did_header;
 require_once("../wp-load.php");
 require_once('twitteroauth/twitteroauth.php');
@@ -88,7 +91,7 @@ require_once('twitteroauth/twitteroauth.php');
 define('CONSUMER_KEY', get_option('twitter_oauth_consumer_key'));
 define('CONSUMER_SECRET', get_option('twitter_oauth_consumer_secret'));
 define('OAUTH_CALLBACK', get_site_url() . '/wp-admin/admin-ajax.php?action=twitter_oauth_callback');
-	$access_token = $_SESSION['access_token'];
+	$access_token = $_SESSION['twitter_access_token'];
 	$connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, $access_token['oauth_token'], $access_token['oauth_token_secret']);
 	$content = $connection->get('account/verify_credentials');
 	
@@ -96,6 +99,8 @@ define('OAUTH_CALLBACK', get_site_url() . '/wp-admin/admin-ajax.php?action=twitt
 	{
 		$user_id = username_exists($content->screen_name);
 		wp_set_auth_cookie($user_id);
+		update_user_meta($user_id, "twitter_access_token", $_SESSION["access_token"]);
+		update_user_meta($user_id, "twitter_secret_access_token", $_SESSION["secret_access_token"]);
 		header('Location: ' . get_site_url());
 	}
 	else
@@ -104,10 +109,10 @@ define('OAUTH_CALLBACK', get_site_url() . '/wp-admin/admin-ajax.php?action=twitt
 		wp_create_user($content->screen_name, $content->id);
 		$user_id = username_exists($content->screen_name);
 		wp_set_auth_cookie($user_id);
+		update_user_meta($user_id, "twitter_access_token", $_SESSION["access_token"]);
+		update_user_meta($user_id, "twitter_secret_access_token", $_SESSION["secret_access_token"]);
 		header('Location: ' . get_site_url());
 	}
-	
-	unset($_SESSION["access_token"]);
 	
 	die();
 }
