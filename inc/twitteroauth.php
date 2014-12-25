@@ -99,8 +99,8 @@ define('OAUTH_CALLBACK', get_site_url() . '/wp-admin/admin-ajax.php?action=twitt
 	{
 		$user_id = username_exists($content->screen_name);
 		wp_set_auth_cookie($user_id);
-		update_user_meta($user_id, "twitter_access_token", $_SESSION["access_token"]);
-		update_user_meta($user_id, "twitter_secret_access_token", $_SESSION["secret_access_token"]);
+		update_user_meta($user_id, "twitter_access_token", $access_token['oauth_token']);
+		update_user_meta($user_id, "twitter_secret_access_token", $access_token['oauth_token_secret']);
 		header('Location: ' . get_site_url());
 	}
 	else
@@ -109,8 +109,8 @@ define('OAUTH_CALLBACK', get_site_url() . '/wp-admin/admin-ajax.php?action=twitt
 		wp_create_user($content->screen_name, $content->id);
 		$user_id = username_exists($content->screen_name);
 		wp_set_auth_cookie($user_id);
-		update_user_meta($user_id, "twitter_access_token", $_SESSION["access_token"]);
-		update_user_meta($user_id, "twitter_secret_access_token", $_SESSION["secret_access_token"]);
+		update_user_meta($user_id, "twitter_access_token", $access_token['oauth_token']);
+		update_user_meta($user_id, "twitter_secret_access_token", $access_token['oauth_token_secret']);
 		header('Location: ' . get_site_url());
 	}
 	
